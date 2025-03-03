@@ -126,7 +126,7 @@ class VideoBrowser:
         if 7 < h:
             self.stdscr.addstr(7, 2, prompt, curses.A_BOLD)
             max_query_length = w - len(prompt) - 3
-            display_query = self.search_query[-max_query_length:] if self.searcsh_mode else ""
+            display_query = self.search_query[-max_query_length:] if self.search_mode else ""
             self.stdscr.addstr(7, 2 + len(prompt), 
                 display_query.ljust(max_query_length),
                 curses.A_REVERSE if self.search_mode else curses.color_pair(2))
