@@ -30,7 +30,7 @@ class VideoBrowser:
         self.trending_page = 1
         self.search_page = 1
         self.init_ui()
-        
+
     def init_ui(self):
         curses.curs_set(0)
         curses.start_color()
@@ -109,7 +109,7 @@ class VideoBrowser:
             f"🔥 Trending ({len(self.trending_videos)})",
             f"🔍 Search Results (Page {self.search_page})"
         ]
-        
+
         for i, label in enumerate(tabs):
             x = 2 + i*30
             attr = curses.color_pair(1) | curses.A_BOLD if self.current_tab == i else curses.A_DIM
@@ -127,7 +127,7 @@ class VideoBrowser:
             self.stdscr.addstr(7, 2, prompt, curses.A_BOLD)
             max_query_length = w - len(prompt) - 3
             display_query = self.search_query[-max_query_length:] if self.search_mode else ""
-            self.stdscr.addstr(7, 2 + len(prompt), 
+            self.stdscr.addstr(7, 2 + len(prompt),
                 display_query.ljust(max_query_length),
                 curses.A_REVERSE if self.search_mode else curses.color_pair(2))
 
@@ -136,34 +136,34 @@ class VideoBrowser:
         videos = self.trending_videos if self.current_tab == 0 else self.search_results
         start_y = 9
         max_items = h - start_y - 2 if h > start_y + 2 else 0
-        
+
         # Ensure selected index stays in bounds
         self.selected_idx = min(self.selected_idx, len(videos)-1) if videos else 0
-        
+
         # Calculate scroll offset
         if self.selected_idx >= self.scroll_offset + max_items:
             self.scroll_offset = self.selected_idx - max_items + 1
         elif self.selected_idx < self.scroll_offset:
             self.scroll_offset = max(0, self.selected_idx)
-            
+
         for i in range(max_items):
             vid_idx = i + self.scroll_offset
             if vid_idx >= len(videos):
                 break
-            
+
             y = start_y + i
             if y >= h - 1:
                 break
-            
+
             video = videos[vid_idx]
-            title = textwrap.shorten(video.get('title', 'Untitled'), 
-                                   width=w-10, 
+            title = textwrap.shorten(video.get('title', 'Untitled'),
+                                   width=w-10,
                                    placeholder="...")
             line = f"▶ {vid_idx+1:2d}. {title}"
             attr = curses.color_pair(1) if vid_idx == self.selected_idx else curses.A_NORMAL
-            
+
             self.stdscr.addstr(y, 4, line, attr)
-            
+
             duration = video.get('duration_string') or '--:--'
             channel = textwrap.shorten(video.get('channel', 'Unknown'), 15, placeholder="..")
             self.stdscr.addstr(y, w-25, f"📺 {channel}", curses.A_DIM)
@@ -184,7 +184,7 @@ class VideoBrowser:
         videos = self.trending_videos if self.current_tab == 0 else self.search_results
         if not videos or self.selected_idx >= len(videos):
             return
-            
+
         video = videos[self.selected_idx]
         try:
             subprocess.Popen(
@@ -197,7 +197,7 @@ class VideoBrowser:
 
     def handle_input(self):
         key = self.stdscr.getch()
-        
+
         if self.search_mode:
             if key in [curses.KEY_ENTER, 10, 13]:
                 self.search_mode = False
@@ -213,7 +213,7 @@ class VideoBrowser:
             elif 32 <= key <= 126:
                 self.search_query += chr(key)
             return True
-        
+
         if key == ord('q'):
             return False
         elif key == curses.KEY_UP:
@@ -222,7 +222,7 @@ class VideoBrowser:
             videos = self.trending_videos if self.current_tab == 0 else self.search_results
             if videos:
                 self.selected_idx = min(len(videos)-1, self.selected_idx + 1)
-                
+
                 # Auto-load more only for search results
                 if self.current_tab == 1 and self.selected_idx >= len(videos) - 3:
                     self.search_page += 1
@@ -237,17 +237,17 @@ class VideoBrowser:
             self.search_mode = True
             self.search_query = ""
             curses.curs_set(1)
-        
+
         return True
 
     def run(self):
         while True:
             self.draw_ui()
-            
+
             while not self.result_queue.empty():
                 result_type, success = self.result_queue.get()
                 self.loading = False
-            
+
             self.stdscr.timeout(100)
             if not self.handle_input():
                 break
